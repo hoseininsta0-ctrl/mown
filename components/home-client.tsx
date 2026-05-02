@@ -2,13 +2,21 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Download, Globe, HardDrive, Loader2, Youtube } from 'lucide-react'
+import {
+  CheckCircle2,
+  Download,
+  Github,
+  Globe,
+  HardDrive,
+  Loader2,
+  Settings2,
+  Upload,
+  Youtube,
+} from 'lucide-react'
 import { toast } from 'sonner'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TokenInput } from '@/components/token-input'
 import { RepoSelector } from '@/components/repo-selector'
 import { JobConfigPanel } from '@/components/job-config-panel'
@@ -16,6 +24,7 @@ import { VideoPreviewCard } from '@/components/video-preview-card'
 import { saveJob, saveSettings, getSettings } from '@/lib/store'
 import type { DownloadType, InputType } from '@/lib/mock-data'
 import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 const defaultDownloadType: Record<InputType, DownloadType> = {
   youtube: 'video',
@@ -23,12 +32,17 @@ const defaultDownloadType: Record<InputType, DownloadType> = {
   snapshot: 'webpage',
 }
 
+const inputTabs: Array<{ key: InputType; icon: React.ElementType; activeColor: string }> = [
+  { key: 'youtube', icon: Youtube, activeColor: 'text-red-500' },
+  { key: 'direct', icon: HardDrive, activeColor: 'text-blue-400' },
+  { key: 'snapshot', icon: Globe, activeColor: 'text-green-500' },
+]
+
 export function HomeClient() {
   const router = useRouter()
   const t = useTranslations('home')
-  const tCommon = useTranslations('common')
-  const tHistory = useTranslations('history')
   const tJobConfig = useTranslations('jobConfig')
+
   const [inputType, setInputType] = useState<InputType>('youtube')
   const [url, setUrl] = useState('')
   const [token, setToken] = useState('')
@@ -38,44 +52,32 @@ export function HomeClient() {
   const [filename, setFilename] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [settingUp, setSettingUp] = useState(false)
-
   const [cookiesUploaded, setCookiesUploaded] = useState(false)
+  const [isSetupDone, setIsSetupDone] = useState(false)
 
-  // Load settings from localStorage on mount
   useEffect(() => {
     const settings = getSettings()
     if (settings.token) setToken(settings.token)
     if (settings.repo) setRepo(settings.repo)
     if (settings.cookiesUploaded) setCookiesUploaded(settings.cookiesUploaded)
+    if (settings.token && settings.repo) setIsSetupDone(true)
   }, [])
 
-  function handleTabChange(val: string) {
-    const t = val as InputType
-    setInputType(t)
-    setDownloadType(defaultDownloadType[t])
+  function handleTabChange(val: InputType) {
+    setInputType(val)
+    setDownloadType(defaultDownloadType[val])
     setUrl('')
-  }
-
-  function getUrlPlaceholder() {
-    return t('form.urlPlaceholder')
-  }
-
-  function getUrlLabel() {
-    return t('form.urlLabel')
   }
 
   async function handleCookiesUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-
     const text = await file.text()
     const settings = getSettings()
-
     if (!settings.token || !settings.owner || !settings.repo) {
       toast.error(t('setup.title'))
       return
     }
-
     try {
       const res = await fetch('/api/cookies', {
         method: 'POST',
@@ -114,8 +116,9 @@ export function HomeClient() {
       const data = await res.json()
       saveSettings({ token, owner: data.owner, repo: data.repo })
       setRepo(data.repo)
+      setIsSetupDone(true)
       toast.success(t('setup.success'), {
-        description: `Using ${data.owner}/${data.repo}`,
+        description: `${data.owner}/${data.repo}`,
       })
     } catch (err) {
       toast.error(t('setup.title'), { description: err instanceof Error ? err.message : undefined })
@@ -135,8 +138,6 @@ export function HomeClient() {
       toast.error(t('setup.description'))
       return
     }
-
-    // Check if cookies are needed for YouTube
     if (inputType === 'youtube' && !settings.cookiesUploaded) {
       const confirm = window.confirm(t('setup.cookiesDescription'))
       if (confirm) {
@@ -144,7 +145,6 @@ export function HomeClient() {
         return
       }
     }
-
     setSubmitting(true)
     try {
       const typeMap: Record<InputType, string> = {
@@ -184,9 +184,7 @@ export function HomeClient() {
         status: 'queued',
         createdAt: new Date().toISOString(),
       })
-      toast.success(t('form.submit'), {
-        description: 'Dispatching GitHub Actions workflow...',
-      })
+      toast.success(t('form.submit'))
       router.push(`/jobs/${data.runId}`)
     } catch (err) {
       toast.error(t('form.submit'), { description: err instanceof Error ? err.message : undefined })
@@ -198,108 +196,77 @@ export function HomeClient() {
   const showPreview = inputType === 'youtube' && url.includes('youtube.com')
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-      {/* Left column: URL + Auth + Repo */}
-      <div className="space-y-6 lg:col-span-3">
-        {/* URL Input */}
-        <Card className="border-border bg-card">
-          <CardContent className="pt-5">
-            <Tabs value={inputType} onValueChange={handleTabChange}>
-              <TabsList className="mb-4 grid w-full grid-cols-3">
-                <TabsTrigger value="youtube" className="gap-1.5 text-xs">
-                  <Youtube className="h-3.5 w-3.5" />
-                  {t('tabs.youtube')}
-                </TabsTrigger>
-                <TabsTrigger value="direct" className="gap-1.5 text-xs">
-                  <HardDrive className="h-3.5 w-3.5" />
-                  {t('tabs.direct')}
-                </TabsTrigger>
-                <TabsTrigger value="snapshot" className="gap-1.5 text-xs">
-                  <Globe className="h-3.5 w-3.5" />
-                  {t('tabs.snapshot')}
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="youtube" className="mt-0">
-                <UrlInput
-                  label={t('form.urlLabel')}
-                  placeholder={t('form.urlPlaceholder')}
-                  value={url}
-                  onChange={setUrl}
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* URL hero section */}
+      <Card className="border-border bg-card">
+        <CardContent className="p-4 sm:p-5">
+          {/* Tab selector */}
+          <div className="mb-4 flex gap-1 rounded-lg bg-secondary p-1">
+            {inputTabs.map(({ key, icon: Icon, activeColor }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleTabChange(key)}
+                className={cn(
+                  'flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                  inputType === key
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Icon
+                  className={cn('h-4 w-4 shrink-0', inputType === key ? activeColor : '')}
                 />
-              </TabsContent>
-              <TabsContent value="direct" className="mt-0">
-                <UrlInput
-                  label={t('form.urlLabel')}
-                  placeholder={t('form.urlPlaceholder')}
-                  value={url}
-                  onChange={setUrl}
-                />
-              </TabsContent>
-              <TabsContent value="snapshot" className="mt-0">
-                <UrlInput
-                  label={t('form.urlLabel')}
-                  placeholder={t('form.urlPlaceholder')}
-                  value={url}
-                  onChange={setUrl}
-                />
-              </TabsContent>
-            </Tabs>
+                <span>{t(`tabs.${key}`)}</span>
+              </button>
+            ))}
+          </div>
 
-            {showPreview && (
-              <div className="mt-4">
-                <VideoPreviewCard url={url} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Auth + Repo */}
-        <Card className="border-border bg-card">
-          <CardContent className="space-y-5 pt-5">
-            <TokenInput value={token} onChange={setToken} />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleSetup}
-              disabled={settingUp}
-              className="w-full"
-            >
-              {settingUp ? (
-                <>
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  {t('setup.initializing')}
-                </>
+          {/* URL input + submit button */}
+          <div className="flex gap-2">
+            <Input
+              type="url"
+              inputMode="url"
+              placeholder={t('form.urlPlaceholder')}
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              className="h-11 flex-1 font-mono text-sm"
+              spellCheck={false}
+              dir="ltr"
+              aria-label={t('form.urlLabel')}
+            />
+            <Button type="submit" className="h-11 shrink-0 gap-2 px-5" disabled={submitting}>
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                t('setup.button')
+                <Download className="h-4 w-4" />
               )}
+              <span className="hidden sm:inline">
+                {submitting ? t('form.submitting') : t('form.submit')}
+              </span>
             </Button>
-            <div className="bg-warning/10 border-warning/30 rounded-lg border p-3">
-              <p className="text-warning-foreground mb-2 text-xs">
-                {cookiesUploaded ? t('setup.cookiesUpdate') : t('setup.cookiesDescription')}
-              </p>
-              <input
-                type="file"
-                accept=".txt"
-                onChange={handleCookiesUpload}
-                className="text-foreground w-full text-xs"
-              />
-              {cookiesUploaded && (
-                <p className="text-success mt-1 text-[10px]">{t('setup.cookiesSaved')}</p>
-              )}
-            </div>
-            <Separator />
-            <RepoSelector value={repo} onChange={setRepo} />
-          </CardContent>
-        </Card>
-      </div>
+          </div>
 
-      {/* Right column: Config + Submit */}
-      <div className="space-y-6 lg:col-span-2">
+          {/* Video preview */}
+          {showPreview && (
+            <div className="mt-4">
+              <VideoPreviewCard url={url} />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Settings grid */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Download config */}
         <Card className="border-border bg-card">
-          <CardContent className="pt-5">
-            <p className="text-foreground mb-4 text-sm font-medium">{tJobConfig('title')}</p>
+          <CardHeader className="px-5 pb-3 pt-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-medium">
+              <Settings2 className="text-muted-foreground h-4 w-4" />
+              {tJobConfig('title')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 pb-5">
             <JobConfigPanel
               inputType={inputType}
               downloadType={downloadType}
@@ -312,55 +279,72 @@ export function HomeClient() {
           </CardContent>
         </Card>
 
-        <Button type="submit" className="w-full gap-2" size="lg" disabled={submitting}>
-          {submitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {t('form.submitting')}
-            </>
-          ) : (
-            <>
-              {t('form.submit')}
-              <Download className="h-4 w-4" />
-            </>
-          )}
-        </Button>
+        {/* GitHub setup */}
+        <Card className="border-border bg-card">
+          <CardHeader className="px-5 pb-3 pt-4">
+            <CardTitle className="flex items-center justify-between gap-2 text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <Github className="text-muted-foreground h-4 w-4" />
+                {t('auth.title')}
+              </div>
+              {isSetupDone && (
+                <span className="text-success flex items-center gap-1 text-xs font-normal">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  راه‌اندازی شده
+                </span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 px-5 pb-5">
+            <TokenInput value={token} onChange={setToken} />
 
-        <p className="text-muted-foreground text-center text-xs">
-          {t('form.submit')}.{' '}
-          <a href="/history" className="hover:text-foreground underline underline-offset-2">
-            {tHistory('newDownload')}
-          </a>
-        </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSetup}
+              disabled={settingUp}
+              className="w-full gap-2"
+            >
+              {settingUp ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  {t('setup.initializing')}
+                </>
+              ) : (
+                t('setup.button')
+              )}
+            </Button>
+
+            {/* Cookies upload */}
+            <div className="space-y-2 rounded-lg border border-warning/30 bg-warning/5 p-3">
+              <p className="text-warning-foreground text-xs leading-relaxed">
+                {cookiesUploaded ? t('setup.cookiesUpdate') : t('setup.cookiesDescription')}
+              </p>
+              <label className="border-border hover:border-primary/40 hover:text-foreground flex cursor-pointer items-center gap-2 rounded-md border border-dashed bg-background/50 px-3 py-2 text-xs text-muted-foreground transition-colors">
+                <Upload className="h-3.5 w-3.5 shrink-0" />
+                <span>
+                  {cookiesUploaded ? 'بارگذاری مجدد cookies.txt' : 'بارگذاری cookies.txt'}
+                </span>
+                <input
+                  type="file"
+                  accept=".txt"
+                  onChange={handleCookiesUpload}
+                  className="sr-only"
+                />
+              </label>
+              {cookiesUploaded && (
+                <p className="text-success flex items-center gap-1 text-[10px]">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {t('setup.cookiesSaved')}
+                </p>
+              )}
+            </div>
+
+            <RepoSelector value={repo} onChange={setRepo} />
+          </CardContent>
+        </Card>
       </div>
     </form>
-  )
-}
-
-function UrlInput({
-  label,
-  placeholder,
-  value,
-  onChange,
-}: {
-  label: string
-  placeholder: string
-  value: string
-  onChange: (val: string) => void
-}) {
-  return (
-    <div className="space-y-1.5">
-      <label className="text-muted-foreground text-sm">{label}</label>
-      <Input
-        type="url"
-        inputMode="url"
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className="font-mono text-sm"
-        spellCheck={false}
-        dir="ltr"
-      />
-    </div>
   )
 }

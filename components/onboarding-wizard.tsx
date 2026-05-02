@@ -6,22 +6,21 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
 import {
+  Camera,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Eye,
   EyeOff,
-  CheckCircle2,
   Github,
-  KeyRound,
   GitFork,
-  Loader2,
-  Youtube,
+  KeyRound,
   Link2,
-  Camera,
+  Loader2,
   Sparkles,
-  ChevronLeft,
-  ChevronRight,
+  Youtube,
 } from 'lucide-react'
 import { saveSettings, getSettings } from '@/lib/store'
 import { toast } from 'sonner'
@@ -36,9 +35,7 @@ function useOnboardingState() {
   useEffect(() => {
     setMounted(true)
     const done = localStorage.getItem(ONBOARDING_KEY)
-    if (!done) {
-      setOpen(true)
-    }
+    if (!done) setOpen(true)
   }, [])
 
   function finish() {
@@ -56,10 +53,10 @@ function useOnboardingState() {
 // ── Step 1: Welcome ──────────────────────────────────────────────────────────
 function Step1({ t }: { t: ReturnType<typeof useTranslations> }) {
   const features = [
-    { icon: Youtube, text: t('step1.feature1') },
-    { icon: Link2, text: t('step1.feature2') },
-    { icon: Camera, text: t('step1.feature3') },
-    { icon: Github, text: t('step1.feature4') },
+    { icon: Youtube, text: t('step1.feature1'), color: 'text-red-500 bg-red-500/10' },
+    { icon: Link2, text: t('step1.feature2'), color: 'text-blue-400 bg-blue-400/10' },
+    { icon: Camera, text: t('step1.feature3'), color: 'text-green-500 bg-green-500/10' },
+    { icon: Github, text: t('step1.feature4'), color: 'text-foreground bg-secondary' },
   ]
 
   return (
@@ -68,16 +65,23 @@ function Step1({ t }: { t: ReturnType<typeof useTranslations> }) {
         <div className="bg-primary/10 flex h-16 w-16 items-center justify-center rounded-2xl">
           <Download className="text-primary h-8 w-8" />
         </div>
-        <h2 className="text-foreground text-xl font-bold">{t('step1.title')}</h2>
-        <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
-          {t('step1.description')}
-        </p>
+        <div>
+          <h2 className="text-foreground text-xl font-bold">{t('step1.title')}</h2>
+          <p className="text-muted-foreground mt-1.5 max-w-xs text-sm leading-relaxed">
+            {t('step1.description')}
+          </p>
+        </div>
       </div>
       <ul className="flex flex-col gap-3">
-        {features.map(({ icon: Icon, text }, i) => (
+        {features.map(({ icon: Icon, text, color }, i) => (
           <li key={i} className="flex items-start gap-3">
-            <span className="bg-primary/10 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg">
-              <Icon className="text-primary h-3.5 w-3.5" />
+            <span
+              className={cn(
+                'mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
+                color
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
             </span>
             <span className="text-foreground text-sm leading-relaxed">{text}</span>
           </li>
@@ -131,6 +135,7 @@ function Step2({
             )}
             autoComplete="off"
             spellCheck={false}
+            dir="ltr"
           />
           <Button
             type="button"
@@ -153,16 +158,16 @@ function Step2({
       <button
         type="button"
         onClick={() => setShowGuide(v => !v)}
-        className="text-primary hover:text-primary/80 flex items-center gap-1 text-start text-sm font-medium transition-colors"
+        className="text-primary hover:text-primary/80 flex items-center gap-1.5 text-start text-sm font-medium transition-colors"
       >
         <Github className="h-3.5 w-3.5 shrink-0" />
         {t('step2.howToGet')}
       </button>
 
       {showGuide && (
-        <ol className="bg-muted/50 border-border flex flex-col gap-2 rounded-xl border p-4">
+        <ol className="bg-muted/50 border-border flex flex-col gap-2.5 rounded-xl border p-4">
           {steps.map((step, i) => (
-            <li key={i} className="flex gap-2.5">
+            <li key={i} className="flex gap-3">
               <span className="text-primary bg-primary/10 mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold">
                 {i + 1}
               </span>
@@ -251,11 +256,9 @@ function Step3({
         </div>
 
         {initialized ? (
-          <div className="flex items-center gap-2 rounded-xl bg-green-500/10 p-3">
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
-            <span className="text-sm font-medium text-green-700 dark:text-green-400">
-              {t('step3.success')}
-            </span>
+          <div className="flex items-center gap-2.5 rounded-xl bg-success/10 p-3">
+            <CheckCircle2 className="text-success h-4 w-4 shrink-0" />
+            <span className="text-success text-sm font-medium">{t('step3.success')}</span>
           </div>
         ) : (
           <Button type="button" onClick={onInit} disabled={initializing} className="w-full gap-2">
@@ -289,36 +292,46 @@ function Step4({ t }: { t: ReturnType<typeof useTranslations> }) {
       icon: Link2,
       title: t('step4.tip1Title'),
       desc: t('step4.tip1Desc'),
+      color: 'text-blue-400 bg-blue-400/10',
     },
     {
       icon: Sparkles,
       title: t('step4.tip2Title'),
       desc: t('step4.tip2Desc'),
+      color: 'text-primary bg-primary/10',
     },
     {
       icon: CheckCircle2,
       title: t('step4.tip3Title'),
       desc: t('step4.tip3Desc'),
+      color: 'text-success bg-success/10',
     },
   ]
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-3 pt-2 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-500/10">
-          <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+        <div className="bg-success/10 flex h-16 w-16 items-center justify-center rounded-2xl">
+          <CheckCircle2 className="text-success h-8 w-8" />
         </div>
-        <h2 className="text-foreground text-xl font-bold">{t('step4.title')}</h2>
-        <p className="text-muted-foreground max-w-xs text-sm leading-relaxed">
-          {t('step4.description')}
-        </p>
+        <div>
+          <h2 className="text-foreground text-xl font-bold">{t('step4.title')}</h2>
+          <p className="text-muted-foreground mt-1.5 max-w-xs text-sm leading-relaxed">
+            {t('step4.description')}
+          </p>
+        </div>
       </div>
 
       <ul className="flex flex-col gap-4">
-        {tips.map(({ icon: Icon, title, desc }, i) => (
+        {tips.map(({ icon: Icon, title, desc, color }, i) => (
           <li key={i} className="flex items-start gap-3">
-            <span className="bg-primary/10 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl">
-              <Icon className="text-primary h-4 w-4" />
+            <span
+              className={cn(
+                'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
+                color
+              )}
+            >
+              <Icon className="h-4 w-4" />
             </span>
             <div className="flex flex-col gap-0.5">
               <span className="text-foreground text-sm font-semibold">{title}</span>
@@ -352,7 +365,6 @@ export function OnboardingWizard() {
   const [initialized, setInitialized] = useState(false)
   const [step3Skipped, setStep3Skipped] = useState(false)
 
-  // Load existing settings
   useEffect(() => {
     const s = getSettings()
     if (s.token) setToken(s.token)
@@ -419,39 +431,49 @@ export function OnboardingWizard() {
     }
   }
 
-  const progress = ((step + 1) / TOTAL) * 100
-
-  // RTL-aware arrow icons
-  const BackIcon = ChevronRight
-  const NextIcon = ChevronLeft
+  const progressPct = ((step + 1) / TOTAL) * 100
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         className="flex max-h-[90dvh] w-[calc(100vw-2rem)] max-w-sm flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-md"
         aria-describedby="onboarding-description"
+        dir="rtl"
       >
         <DialogTitle className="sr-only">{t('step1.title')}</DialogTitle>
 
-        {/* Progress bar */}
-        <div className="px-6 pt-5">
-          <div className="mb-1 flex items-center justify-between">
+        {/* Progress header */}
+        <div className="border-border border-b px-6 pt-5 pb-4">
+          <div className="mb-2.5 flex items-center justify-between">
             <span className="text-muted-foreground text-xs">
               {t('step', { current: step + 1, total: TOTAL })}
             </span>
             {step < TOTAL - 1 && (
               <button
                 type="button"
-                onClick={() => {
-                  finish()
-                }}
+                onClick={finish}
                 className="text-muted-foreground hover:text-foreground text-xs underline underline-offset-4 transition-colors"
               >
                 {t('skip')}
               </button>
             )}
           </div>
-          <Progress value={progress} className="h-1.5" />
+          {/* Step dots */}
+          <div className="flex items-center gap-1.5">
+            {Array.from({ length: TOTAL }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  'h-1 rounded-full transition-all duration-300',
+                  i === step
+                    ? 'bg-primary flex-1'
+                    : i < step
+                      ? 'bg-primary/40 w-6'
+                      : 'bg-border w-6'
+                )}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Content */}
@@ -505,29 +527,15 @@ export function OnboardingWizard() {
             disabled={step === 0}
             className="gap-1.5"
           >
-            <BackIcon className="h-4 w-4" />
+            {/* ChevronRight in RTL context = visually "back" arrow pointing right */}
+            <ChevronRight className="h-4 w-4" />
             {t('back')}
           </Button>
 
-          <div className="flex gap-1.5">
-            {Array.from({ length: TOTAL }).map((_, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'h-1.5 rounded-full transition-all',
-                  i === step
-                    ? 'bg-primary w-5'
-                    : i < step
-                      ? 'bg-primary/50 w-1.5'
-                      : 'bg-border w-1.5'
-                )}
-              />
-            ))}
-          </div>
-
           <Button type="button" size="sm" onClick={handleNext} className="gap-1.5">
             {step === TOTAL - 1 ? t('finish') : t('next')}
-            {step < TOTAL - 1 && <NextIcon className="h-4 w-4" />}
+            {/* ChevronLeft in RTL context = visually "forward" arrow pointing left */}
+            {step < TOTAL - 1 && <ChevronLeft className="h-4 w-4" />}
           </Button>
         </div>
       </DialogContent>
