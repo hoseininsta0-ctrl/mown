@@ -1,0 +1,170 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "download": "Download",
+    "status": {
+      "queued": "Queued",
+      "in_progress": "Running",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
+  },
+  "navbar": {
+    "home": "Home",
+    "history": "History",
+    "newJob": "New Download"
+  },
+  "home": {
+    "title": "Download Anything",
+    "subtitle": "via GitHub Actions",
+    "tabs": {
+      "youtube": "YouTube",
+      "direct": "Direct URL",
+      "snapshot": "Snapshot"
+    },
+    "form": {
+      "urlLabel": "URL",
+      "urlPlaceholder": "Paste URL here...",
+      "submit": "Start Download",
+      "submitting": "Starting..."
+    },
+    "auth": {
+      "title": "GitHub Auth",
+      "tokenLabel": "Personal Access Token",
+      "tokenPlaceholder": "ghp_...",
+      "tokenHint": "Needs repo + workflow scopes",
+      "ownerLabel": "Owner",
+      "repoLabel": "Repository"
+    },
+    "setup": {
+      "title": "Setup",
+      "description": "Initialize your GitHub repository with required workflows",
+      "button": "Initialize Repository",
+      "initializing": "Initializing...",
+      "success": "Repository initialized successfully",
+      "cookies": "YouTube Cookies",
+      "cookiesDescription": "Paste your cookies.txt content for age-restricted videos",
+      "cookiesUpdate": "Update your cookies.txt (expired cookies can cause download failures)",
+      "cookiesPlaceholder": "# Netscape HTTP Cookie File\n...",
+      "saveCookies": "Save Cookies",
+      "cookiesSaved": "Cookies saved successfully"
+    }
+  },
+  "jobConfig": {
+    "title": "Download Options",
+    "type": {
+      "label": "Type",
+      "video": "Video (mp4)",
+      "audio": "Audio (mp3)",
+      "snapshot": "Webpage (.html)",
+      "direct": "Direct File"
+    },
+    "quality": {
+      "label": "Quality",
+      "best": "Best",
+      "2160": "2160p",
+      "1440": "1440p",
+      "1080": "1080p",
+      "720": "720p",
+      "480": "480p",
+      "360": "360p",
+      "audio": "Audio only"
+    },
+    "filename": {
+      "label": "Custom Filename",
+      "placeholder": "Leave empty for auto"
+    }
+  },
+  "jobStatus": {
+    "title": "Job Status",
+    "runId": "Run ID",
+    "repository": "Repository",
+    "created": "Created",
+    "logs": "Logs",
+    "noLogs": "No logs yet...",
+    "downloadReady": "Your file is ready",
+    "downloadButton": "Download File",
+    "expireWarning": "File expires in {hours}h",
+    "expired": "Artifact expired",
+    "failedMessage": "Job failed. Check logs for details.",
+    "retryButton": "New Download"
+  },
+  "onboarding": {
+    "step": "Step {current} of {total}",
+    "skip": "Skip",
+    "next": "Next",
+    "back": "Back",
+    "finish": "Get Started!",
+    "step1": {
+      "title": "Welcome to Mown",
+      "description": "Mown helps you download any file from the internet using GitHub Actions. No server or technical tools needed.",
+      "feature1": "Download videos from YouTube and thousands of other sites",
+      "feature2": "Direct download any link",
+      "feature3": "Take snapshots of web pages",
+      "feature4": "All files are stored in your GitHub repository"
+    },
+    "step2": {
+      "title": "GitHub Token",
+      "description": "Mown needs a personal GitHub token to run jobs. This token is only stored in your browser.",
+      "howToGet": "How to get a token?",
+      "step1": "Go to GitHub.com",
+      "step2": "Click your profile picture",
+      "step3": "Settings → Developer settings → Personal access tokens → Tokens (classic)",
+      "step4": "Enable repo and workflow scopes",
+      "tokenLabel": "GitHub Personal Access Token",
+      "tokenPlaceholder": "ghp_...",
+      "tokenHint": "Your token is stored locally and never sent to any server",
+      "tokenRequired": "Please enter your token"
+    },
+    "step3": {
+      "title": "Setup Repository",
+      "description": "Mown needs a GitHub repository to run downloads. Select an existing repo or create a new one automatically.",
+      "ownerLabel": "GitHub Username",
+      "ownerPlaceholder": "e.g. john-doe",
+      "repoLabel": "Repository Name",
+      "repoPlaceholder": "e.g. my-downloads",
+      "initButton": "Initialize Repository",
+      "initializing": "Initializing...",
+      "success": "Repository initialized successfully",
+      "ownerRequired": "Username is required",
+      "repoRequired": "Repository name is required",
+      "alreadySetup": "Repository already set up",
+      "skipSetup": "I already have a repo, skip"
+    },
+    "step4": {
+      "title": "You're All Set!",
+      "description": "Everything is ready. You can now start your first download.",
+      "tip1Title": "Copy the link",
+      "tip1Desc": "Copy any video or file URL and paste it in the main input",
+      "tip2Title": "Choose settings",
+      "tip2Desc": "Set quality, format and filename as needed",
+      "tip3Title": "Track progress",
+      "tip3Desc": "On the history page you can see all download statuses"
+    },
+    "openGuide": "Guide",
+    "reopen": "Show Guide Again"
+  },
+  "history": {
+    "title": "Download History",
+    "subtitle": "All download jobs submitted via GitHub Actions.",
+    "empty": "No downloads yet",
+    "emptyHint": "Start a new download from the home page",
+    "stats": {
+      "total": "Total",
+      "completed": "Completed",
+      "failed": "Failed",
+      "running": "Running"
+    },
+    "redownload": "Re-download",
+    "expiredBadge": "Expired",
+    "newDownload": "New Download",
+    "details": "Details",
+    "viewFolder": "Browse Files",
+    "viewCommit": "View Commit"
+  }
+}

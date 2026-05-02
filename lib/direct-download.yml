@@ -1,0 +1,94 @@
+name: Direct Download
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'Direct file URL'
+        required: true
+        type: string
+      filename:
+        description: 'Output filename'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create downloads directory
+        run: mkdir -p downloads/files
+
+      - name: Download file
+        env:
+          URL: ${{ inputs.url }}
+          FILENAME: ${{ inputs.filename }}
+        run: |
+          curl -L --retry 3 -o "downloads/files/$FILENAME" "$URL"
+          echo "Downloaded: downloads/files/$FILENAME"
+
+      - name: Split large files
+        run: |
+          MAX_SIZE=$((95 * 1024 * 1024))
+          CHUNK_SIZE=$((90 * 1024 * 1024))
+
+          cd downloads/files
+          for file in *; do
+            [ -f "$file" ] || continue
+            size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo 0)
+            if [ "$size" -gt "$MAX_SIZE" ]; then
+              echo "Splitting large file: $file ($size bytes)"
+              base="${file%.*}"
+              ext="${file##*.}"
+
+              split -b "$CHUNK_SIZE" -d -a 2 "$file" "${base}part"
+
+              part_num=1
+              for part in "${base}part"*; do
+                [ -f "$part" ] || continue
+                zip -q "${base}part$(printf '%02d' $part_num).zip" "$part"
+                rm -f "$part"
+                part_num=$((part_num + 1))
+              done
+
+              rm -f "$file"
+              echo "Split into $((part_num - 1)) parts"
+            fi
+          done
+          cd ../..
+
+      - name: Commit and push
+        run: |
+          set -e
+          git config user.name "mown Downloader"
+          git config user.email "mown@system.local"
+
+          git add downloads/files/
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "mown: Download $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            git pull --rebase origin main
+            git push
+            echo "Committed and pushed"
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: download
+          path: downloads/files/
+          retention-days: 1
