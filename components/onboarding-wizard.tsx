@@ -20,8 +20,6 @@ import {
   Link2,
   Camera,
   Sparkles,
-  ArrowLeft,
-  ArrowRight,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'

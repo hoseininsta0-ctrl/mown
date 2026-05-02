@@ -1,16 +1,11 @@
 import type { Metadata, Viewport } from 'next'
-import { Vazirmatn, Geist_Mono } from 'next/font/google'
+import { Geist_Mono } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { getLocale } from 'next-intl/server'
 import './globals.css'
-
-const vazirmatn = Vazirmatn({
-  subsets: ['arabic'],
-  variable: '--font-vazirmatn',
-  display: 'swap',
-})
+import { peyda } from '@/lib/peyda'
 
 const geistMono = Geist_Mono({
   subsets: ['latin'],
@@ -44,7 +39,7 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} dir={dir} className="bg-background" suppressHydrationWarning>
-      <body className={`${vazirmatn.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body className={`${peyda.variable} ${geistMono.variable} font-sans antialiased`}>
         <NextIntlClientProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             {children}
