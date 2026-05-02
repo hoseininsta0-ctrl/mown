@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
-import { ChevronRight, History } from 'lucide-react'
+import { ChevronLeft, History, Plus } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { JobStatusCard } from '@/components/job-status-card'
 import { Button } from '@/components/ui/button'
@@ -21,26 +21,23 @@ export default function JobPage() {
     const j = getJobByRunId(runId)
     setJob(j)
     setLoading(false)
-    if (!j) {
-      // Job not found in store, redirect to home
-      router.push('/')
-    }
-  }, [runId])
+    if (!j) router.push('/')
+  }, [runId, router])
 
   const t = useTranslations('common')
   const tHistory = useTranslations('history')
+  const tJobStatus = useTranslations('jobStatus')
 
   if (loading) {
     return (
       <div className="bg-background flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">{t('loading')}</p>
+        <p className="text-muted-foreground text-sm">{t('loading')}</p>
       </div>
     )
   }
 
   if (!job) return null
 
-  // Convert store Job to mock Job format for JobStatusCard
   const mockJob = {
     id: job.id,
     url: job.url,
@@ -64,29 +61,43 @@ export default function JobPage() {
   return (
     <div className="bg-background min-h-screen">
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-10">
-        {/* Back nav */}
-        <div className="mb-6 flex items-center justify-between">
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
+        {/* Breadcrumb nav */}
+        <div className="mb-6 flex items-center gap-1.5">
           <Link href="/">
-            <Button variant="ghost" size="sm" className="text-muted-foreground gap-1.5">
-              <ChevronRight className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="sm" className="text-muted-foreground h-7 gap-1 text-xs">
+              <Plus className="h-3 w-3" />
               {tHistory('newDownload')}
             </Button>
           </Link>
+          <span className="text-border text-xs">/</span>
           <Link href="/history">
-            <Button variant="ghost" size="sm" className="text-muted-foreground gap-1.5">
-              <History className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="sm" className="text-muted-foreground h-7 gap-1 text-xs">
+              <History className="h-3 w-3" />
               {tHistory('title')}
             </Button>
           </Link>
+          <span className="text-border text-xs">/</span>
+          <span className="text-foreground font-mono text-xs">#{job.runId}</span>
         </div>
 
         {/* Heading */}
         <div className="mb-6">
-          <h1 className="text-foreground text-2xl font-semibold tracking-tight text-balance">
-            {tHistory('title')}
-          </h1>
-          <p className="text-muted-foreground mt-1.5 font-mono text-sm">Run #{job.runId}</p>
+          <div className="flex items-center gap-3">
+            <Link href="/history">
+              <Button variant="ghost" size="icon" className="text-muted-foreground h-8 w-8">
+                <ChevronLeft className="h-4 w-4 rtl:rotate-180" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-foreground text-xl font-semibold tracking-tight">
+                {tJobStatus('title')}
+              </h1>
+              <p className="text-muted-foreground mt-0.5 font-mono text-sm">
+                Run #{job.runId}
+              </p>
+            </div>
+          </div>
         </div>
 
         <JobStatusCard job={mockJob} runId={job.runId} />

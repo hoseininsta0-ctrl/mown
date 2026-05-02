@@ -9,8 +9,8 @@ export default function HomePage() {
   return (
     <div className="bg-background min-h-screen">
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:py-10">
-        <div className="mb-8">
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:py-10">
+        <div className="mb-7">
           <h1 className="text-foreground text-2xl font-semibold tracking-tight text-balance">
             {t('title')}
           </h1>

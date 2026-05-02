@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Download, History, Moon, Sun, Zap, BookOpen } from 'lucide-react'
+import { BookOpen, Download, History, Moon, Sun, Zap } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -24,47 +24,54 @@ export function Navbar() {
   const reopenOnboarding = useReopenOnboarding()
 
   return (
-    <header className="border-border bg-card/80 sticky top-0 z-50 w-full border-b backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+    <header className="border-border/60 bg-background/80 sticky top-0 z-50 w-full border-b backdrop-blur-md">
+      <div className="mx-auto flex h-13 max-w-4xl items-center justify-between px-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="bg-primary flex h-7 w-7 items-center justify-center rounded-md">
-            <Zap className="text-primary-foreground h-4 w-4" />
+            <Zap className="text-primary-foreground h-3.5 w-3.5" fill="currentColor" />
           </div>
           <span className="text-foreground font-semibold tracking-tight">Mown</span>
-          <span className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium">
-            BETA
+          <span className="bg-secondary text-muted-foreground rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider">
+            beta
           </span>
         </Link>
 
         {/* Nav Links */}
-        <nav className="flex items-center gap-1">
-          {navLinks.map(({ href, key, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
-                pathname === href
-                  ? 'bg-secondary text-foreground'
-                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{t(key)}</span>
-            </Link>
-          ))}
+        <nav className="flex items-center gap-0.5">
+          {navLinks.map(({ href, key, icon: Icon }) => {
+            const isActive = pathname === href
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  'relative flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t(key)}</span>
+                {/* Active indicator */}
+                {isActive && (
+                  <span className="bg-primary absolute inset-x-3 -bottom-[1px] h-[2px] rounded-full" />
+                )}
+              </Link>
+            )
+          })}
         </nav>
 
-        <div className="flex items-center gap-1">
-          {/* Guide/Onboarding button */}
+        {/* Right actions */}
+        <div className="flex items-center gap-0.5">
           <TooltipProvider delayDuration={300}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="text-muted-foreground hover:text-foreground h-8 w-8"
                   onClick={reopenOnboarding}
                   aria-label={tOnboarding('reopen')}
                 >
@@ -79,11 +86,10 @@ export function Navbar() {
 
           <LanguageSwitcher />
 
-          {/* Theme toggle */}
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8"
+            className="text-muted-foreground hover:text-foreground h-8 w-8"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             aria-label="Toggle theme"
           >

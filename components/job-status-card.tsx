@@ -2,17 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react'
 import {
+  CheckCircle2,
+  Circle,
+  Clock,
   Download,
   ExternalLink,
   FileAudio,
   FileVideo,
   Globe,
   HardDrive,
+  Loader2,
   RefreshCw,
+  XCircle,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -21,6 +25,7 @@ import { updateJob, getSettings } from '@/lib/store'
 import type { Job } from '@/lib/store'
 import { getDownloadTypeFolder } from '@/lib/utils'
 import { useTranslations } from 'next-intl'
+import { cn } from '@/lib/utils'
 
 interface JobStatusCardProps {
   job: {
@@ -53,6 +58,69 @@ function formatDate(iso: string) {
   })
 }
 
+type PipelineStatus = 'queued' | 'running' | 'completed' | 'failed'
+
+const pipelineSteps: Array<{
+  key: PipelineStatus | 'queued'
+  label: string
+  icon: React.ElementType
+}> = [
+  { key: 'queued', label: 'در صف', icon: Clock },
+  { key: 'running', label: 'در حال دانلود', icon: Loader2 },
+  { key: 'completed', label: 'تکمیل شد', icon: CheckCircle2 },
+]
+
+function PipelineStep({
+  label,
+  icon: Icon,
+  state,
+  isLast,
+}: {
+  label: string
+  icon: React.ElementType
+  state: 'done' | 'active' | 'pending' | 'failed'
+  isLast: boolean
+}) {
+  return (
+    <div className="flex items-center gap-0">
+      <div className="flex flex-col items-center gap-1.5">
+        <div
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all',
+            state === 'done' && 'border-success bg-success/15 text-success',
+            state === 'active' && 'border-primary bg-primary/15 text-primary',
+            state === 'pending' && 'border-border bg-background text-muted-foreground',
+            state === 'failed' && 'border-destructive bg-destructive/15 text-destructive'
+          )}
+        >
+          <Icon
+            className={cn('h-3.5 w-3.5', state === 'active' && Icon === Loader2 && 'animate-spin')}
+          />
+        </div>
+        <span
+          className={cn(
+            'whitespace-nowrap text-[11px] font-medium',
+            state === 'done' && 'text-success',
+            state === 'active' && 'text-primary',
+            state === 'pending' && 'text-muted-foreground',
+            state === 'failed' && 'text-destructive'
+          )}
+        >
+          {label}
+        </span>
+      </div>
+      {!isLast && (
+        <div
+          className={cn(
+            'mx-2 mb-5 h-0.5 w-12 flex-shrink-0 transition-all sm:w-20',
+            state === 'done' ? 'bg-success/40' : 'bg-border'
+          )}
+        />
+      )}
+    </div>
+  )
+}
+
 export function JobStatusCard({ job, runId }: JobStatusCardProps) {
   const router = useRouter()
   const t = useTranslations('jobStatus')
@@ -61,11 +129,8 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
   const logRef = useRef<HTMLDivElement>(null)
   const commitFetchedRef = useRef(false)
   const [logs, setLogs] = useState<string[]>(job.logs || [])
-  const [status, setStatus] = useState(
-    job.status === 'in_progress' ? ('running' as const) : job.status
-  )
-  const [progress, setProgress] = useState(
-    job.status === 'completed' || job.status === 'in_progress' ? 100 : 0
+  const [status, setStatus] = useState<PipelineStatus>(
+    job.status === 'in_progress' ? 'running' : (job.status as PipelineStatus)
   )
 
   const settings = getSettings()
@@ -85,10 +150,9 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
         )
         if (!res.ok) return
         const data = await res.json()
-
         if (cancelled) return
 
-        const newStatus =
+        const newStatus: PipelineStatus =
           data.status === 'completed'
             ? data.conclusion === 'success'
               ? 'completed'
@@ -97,7 +161,7 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
               ? 'running'
               : 'queued'
 
-        setStatus(newStatus as 'queued' | 'running' | 'completed' | 'failed')
+        setStatus(newStatus)
         updateJob(effectiveRunId, { status: newStatus } as any)
 
         if (newStatus === 'completed' && !commitFetchedRef.current) {
@@ -125,7 +189,7 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
     }
   }, [effectiveRunId, settings.token, settings.owner, settings.repo, status])
 
-  // Fetch logs when running
+  // Fetch logs
   useEffect(() => {
     if (status !== 'running' || !effectiveRunId || !settings.token) return
 
@@ -149,14 +213,7 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
     return () => clearInterval(interval)
   }, [status, effectiveRunId, settings.token, settings.owner, settings.repo])
 
-  // Update progress based on status
-  useEffect(() => {
-    if (status === 'completed') setProgress(100)
-    else if (status === 'running') setProgress(60)
-    else if (status === 'queued') setProgress(5)
-  }, [status])
-
-  // Auto-scroll logs to bottom
+  // Auto-scroll logs
   useEffect(() => {
     const el = logRef.current
     if (el) el.scrollTop = el.scrollHeight
@@ -175,34 +232,79 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
     router.push('/')
   }
 
+  // Determine pipeline step states
+  function getStepState(stepKey: string): 'done' | 'active' | 'pending' | 'failed' {
+    if (status === 'failed') {
+      if (stepKey === 'queued') return 'done'
+      if (stepKey === 'running') return 'failed'
+      return 'pending'
+    }
+    if (status === 'completed') {
+      return 'done'
+    }
+    if (status === 'running') {
+      if (stepKey === 'queued') return 'done'
+      if (stepKey === 'running') return 'active'
+      return 'pending'
+    }
+    // queued
+    if (stepKey === 'queued') return 'active'
+    return 'pending'
+  }
+
   return (
-    <Card className="border-border bg-card">
-      <CardHeader className="pb-3">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="border-border bg-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border">
-              <TypeIcon className="text-muted-foreground h-4 w-4" />
-            </div>
-            <div>
-              <p className="text-foreground font-mono text-sm font-medium">
-                {job.filename ?? job.id}
-              </p>
-              <p className="text-muted-foreground mt-0.5 max-w-sm truncate font-mono text-xs">
-                {job.url}
-              </p>
-            </div>
+    <Card className="border-border bg-card overflow-hidden">
+      {/* Pipeline stepper */}
+      <div className="border-border bg-secondary/30 border-b px-5 py-4">
+        <div className="flex items-start justify-center gap-0 overflow-x-auto">
+          {pipelineSteps.map((step, i) => {
+            const state =
+              status === 'failed' && step.key === 'completed'
+                ? (getStepState('failed') as 'done' | 'active' | 'pending' | 'failed')
+                : (getStepState(step.key) as 'done' | 'active' | 'pending' | 'failed')
+
+            // For the last visible step when failed, replace with failed state
+            const effectiveState =
+              status === 'failed' && step.key === 'running' ? 'failed' : state
+
+            return (
+              <PipelineStep
+                key={step.key}
+                label={step.label}
+                icon={
+                  status === 'failed' && step.key === 'running' ? XCircle : step.icon
+                }
+                state={effectiveState}
+                isLast={i === pipelineSteps.length - 1}
+              />
+            )
+          })}
+        </div>
+      </div>
+
+      <CardContent className="p-5">
+        {/* Job metadata header */}
+        <div className="mb-5 flex flex-wrap items-start gap-3">
+          <div className="border-border bg-secondary flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border">
+            <TypeIcon className="text-muted-foreground h-4.5 w-4.5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-foreground font-mono text-sm font-medium">
+              {job.filename ?? job.id}
+            </p>
+            <p className="text-muted-foreground mt-0.5 max-w-sm truncate font-mono text-xs" dir="ltr">
+              {job.url}
+            </p>
           </div>
           <JobStatusBadge status={status === 'running' ? 'in_progress' : status} />
         </div>
-      </CardHeader>
 
-      <Separator />
+        <Separator className="mb-5" />
 
-      <CardContent className="pt-4">
         {/* Meta grid */}
-        <div className="mb-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
+        <div className="mb-5 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
           <MetaItem label={t('runId')}>
-            <span className="font-mono text-xs">{effectiveRunId}</span>
+            <span className="font-mono text-xs">#{effectiveRunId}</span>
           </MetaItem>
           <MetaItem label={t('repository')}>
             <span className="font-mono text-xs">{settings.repo || job.repo}</span>
@@ -211,51 +313,71 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
             <span className="text-xs">{formatDate(job.createdAt)}</span>
           </MetaItem>
           {job.fileSize && (
-            <MetaItem label="File Size">
+            <MetaItem label="حجم فایل">
               <span className="text-xs">{job.fileSize}</span>
             </MetaItem>
           )}
         </div>
 
-        {/* Progress bar */}
-        {(status === 'running' || status === 'completed') && (
-          <div className="mb-4 space-y-1.5">
-            <div className="text-muted-foreground flex items-center justify-between text-xs">
-              <span>{t('downloadReady')}</span>
-              <span>{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-1.5" />
+        {/* Terminal logs */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground text-xs font-medium">{t('logs')}</p>
+            {logs.length > 0 && (
+              <span className="text-muted-foreground/60 font-mono text-[10px]">
+                {logs.length} خط
+              </span>
+            )}
           </div>
-        )}
-
-        {/* Logs */}
-        <div className="space-y-1.5">
-          <p className="text-muted-foreground text-xs font-medium">{t('logs')}</p>
-          <ScrollArea className="border-border bg-background h-48 rounded-lg border">
-            <div ref={logRef as React.RefObject<HTMLDivElement>} className="p-3" dir="ltr">
-              {logs.map((line, i) => (
-                <p
-                  key={i}
-                  className={`font-mono text-xs leading-relaxed ${
-                    line.includes('Error') || line.includes('failed')
-                      ? 'text-destructive'
-                      : line.includes('completed') || line.includes('✓')
-                        ? 'text-green-600'
-                        : 'text-muted-foreground'
-                  }`}
-                >
-                  {line}
-                </p>
-              ))}
-              {status === 'running' && (
-                <p className="text-primary animate-pulse font-mono text-xs">▌</p>
-              )}
+          <div className="border-border bg-background overflow-hidden rounded-lg border">
+            {/* Terminal title bar */}
+            <div className="border-border flex items-center gap-1.5 border-b bg-secondary/50 px-3 py-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
+              <span className="bg-warning/60 h-2.5 w-2.5 rounded-full" />
+              <span className="h-2.5 w-2.5 rounded-full bg-success/60" />
+              <span className="text-muted-foreground ms-2 font-mono text-[10px]">logs</span>
             </div>
-          </ScrollArea>
+            <ScrollArea className="h-52">
+              <div ref={logRef as React.RefObject<HTMLDivElement>} className="p-4" dir="ltr">
+                {logs.length === 0 ? (
+                  <p className="text-muted-foreground/50 font-mono text-xs">
+                    {status === 'queued'
+                      ? '> Waiting for runner...'
+                      : status === 'completed'
+                        ? '> Job completed successfully.'
+                        : '> Initializing...'}
+                  </p>
+                ) : (
+                  logs.map((line, i) => (
+                    <p
+                      key={i}
+                      className={cn(
+                        'font-mono text-xs leading-relaxed',
+                        line.includes('Error') || line.includes('failed') || line.includes('error')
+                          ? 'text-destructive'
+                          : line.includes('completed') ||
+                              line.includes('success') ||
+                              line.includes('✓')
+                            ? 'text-success'
+                            : line.startsWith('>')
+                              ? 'text-primary'
+                              : 'text-muted-foreground'
+                      )}
+                    >
+                      {line}
+                    </p>
+                  ))
+                )}
+                {status === 'running' && (
+                  <span className="text-primary animate-pulse font-mono text-xs">▌</span>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
 
         {/* Actions */}
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-2">
           {status === 'completed' && (
             <Button size="sm" className="gap-2" onClick={handleDownload}>
               <Download className="h-3.5 w-3.5" />
@@ -280,7 +402,7 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
             }
           >
             <ExternalLink className="h-3.5 w-3.5" />
-            {t('retryButton')}
+            مشاهده در گیت‌هاب
           </Button>
         </div>
       </CardContent>
@@ -290,8 +412,8 @@ export function JobStatusCard({ job, runId }: JobStatusCardProps) {
 
 function MetaItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-0.5">
-      <p className="text-muted-foreground/60 text-[11px] font-medium tracking-wider uppercase">
+    <div className="space-y-1">
+      <p className="text-muted-foreground/60 text-[10px] font-medium uppercase tracking-wider">
         {label}
       </p>
       <div className="text-foreground">{children}</div>
