@@ -1,6 +1,12 @@
 {
   "name": "mown",
   "version": "1.0.0",
+  "description": "Download manager powered by GitHub Actions",
+  "author": {
+    "name": "MrMeshky",
+    "email": "meshky.yt@gmail.com",
+    "url": "https://github.com/Mr-Meshky"
+  },
   "private": true,
   "main": "electron/dist/main.js",
   "scripts": {
