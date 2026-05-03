@@ -3,11 +3,11 @@ name: Desktop Build & Release
 on:
   push:
     tags:
-      - "v*.*.*"
+      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version:
-        description: "Version tag (e.g. v1.2.3)"
+        description: 'Version tag (e.g. v1.2.3)'
         required: false
 
 concurrency:
@@ -21,10 +21,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: macOS (Universal)
+          - name: macOS (Apple Silicon)
             os: macos-latest
             platform: mac
-            arch: universal
+            arch: arm64
           - name: Windows
             os: windows-latest
             platform: win
@@ -122,17 +122,17 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Mown ${{ github.ref_name }}"
+          name: 'Mown ${{ github.ref_name }}'
           body: |
             ## Mown ${{ github.ref_name }}
 
             ### دانلود / Download
 
-            | Platform | File |
-            |----------|------|
-            | macOS (Apple Silicon + Intel) | `.dmg` (Universal) |
-            | Windows | `.exe` (installer) |
-            | Linux | `.AppImage` or `.deb` |
+            | Platform | Architecture | File |
+            |----------|-------------|------|
+            | macOS | Apple Silicon (M1/M2/M3) | `.dmg` (arm64) |
+            | Windows | x64 | `.exe` (installer) |
+            | Linux | x64 | `.AppImage` or `.deb` |
 
             ### نصب / Installation
             - **macOS**: فایل `.dmg` را باز کرده و Mown را به Applications بکشید
