@@ -46,3 +46,6 @@ pnpm-debug.log*
 
 # TypeScript cache
 tsconfig.tsbuildinfo
+# Electron build output
+dist-electron/
+electron/dist/

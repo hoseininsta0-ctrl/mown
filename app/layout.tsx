@@ -17,6 +17,10 @@ export const metadata: Metadata = {
   title: 'موان (Mown) — دانلود یوتیوب با گیت‌هاب',
   description:
     'دانلود ویدیوهای یوتیوب بدون نیاز به VPN با استفاده از زیرساخت گیت‌هاب. رابط کاربری ساده و سرعت بالا.',
+  icons: {
+    icon: [{ url: '/logo.png', type: 'image/png' }],
+    apple: '/apple-icon.png',
+  },
 }
 
 export const viewport: Viewport = {

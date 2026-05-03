@@ -1,0 +1,92 @@
+appId: com.mrmeshky.mown
+productName: Mown
+copyright: "Copyright © 2024 MrMeshky"
+
+asar: true
+
+# No native modules need rebuilding — all deps are pure JS/WASM
+npmRebuild: false
+nodeGypRebuild: false
+
+directories:
+  output: dist-electron
+  buildResources: build
+
+# Main process files
+files:
+  - electron/dist/**/*
+  - "!electron/src"
+  - "!electron/tsconfig.json"
+
+# Bundle the Next.js standalone server and static assets into resources/app/
+extraResources:
+  - from: .next/standalone
+    to: app
+    filter:
+      - "**/*"
+  - from: .next/static
+    to: app/.next/static
+    filter:
+      - "**/*"
+
+# macOS
+mac:
+  category: public.app-category.productivity
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  gatekeeperAssess: false
+  target:
+    - target: dmg
+    - target: zip
+  icon: build/icon.icns
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+# Windows — electron-builder converts icon.png to ico automatically
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.png
+  publisherName: MrMeshky
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Mown
+
+# Linux
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  icon: build/icons
+  category: Network
+  synopsis: Download manager powered by GitHub Actions
+  description: Mown - A download manager that uses GitHub Actions as its backend
+
+deb:
+  afterInstall: build/linux/after-install.sh
+  afterRemove: build/linux/after-remove.sh
+
+# Auto-update (optional, uses GitHub Releases)
+publish:
+  provider: github
+  owner: Mr-Meshky
+  repo: mown

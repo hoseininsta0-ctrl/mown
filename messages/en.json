@@ -29,7 +29,7 @@
     },
     "form": {
       "urlLabel": "URL",
-      "urlPlaceholder": "Paste URL here...",
+      "urlPlaceholder": "...",
       "submit": "Start Download",
       "submitting": "Starting..."
     },
