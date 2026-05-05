@@ -62,7 +62,7 @@
       "label": "Type",
       "video": "Video (mp4)",
       "audio": "Audio (mp3)",
-      "snapshot": "Webpage (.html)",
+      "snapshot": "Webpage (mirror)",
       "direct": "Direct File"
     },
     "quality": {

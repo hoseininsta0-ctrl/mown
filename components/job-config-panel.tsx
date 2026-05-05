@@ -48,7 +48,7 @@ const downloadTypes: {
   {
     type: 'webpage',
     label: 'Webpage',
-    description: 'MHTML',
+    description: 'ZIP',
     icon: Globe,
     compatibleWith: ['snapshot'],
   },
