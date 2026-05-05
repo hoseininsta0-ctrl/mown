@@ -8,7 +8,6 @@
     "url": "https://github.com/Mr-Meshky"
   },
   "private": true,
-  "main": "electron/dist/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -20,13 +19,13 @@
     "type-check": "tsc --noEmit",
     "type-check:messages": "tsx scripts/validate-messages.ts",
     "type-check:all": "pnpm type-check && pnpm type-check:messages",
-    "electron:compile": "tsc -p electron/tsconfig.json",
-    "electron:dev": "concurrently -k \"next dev\" \"wait-on http://localhost:3000 && NODE_ENV=development electron .\"",
-    "electron:build": "next build && pnpm electron:postbuild && pnpm electron:compile && electron-builder",
-    "electron:postbuild": "cp -r .next/static .next/standalone/.next/static",
-    "electron:build:mac": "next build && pnpm electron:postbuild && pnpm electron:compile && electron-builder --mac",
-    "electron:build:win": "next build && pnpm electron:postbuild && pnpm electron:compile && electron-builder --win",
-    "electron:build:linux": "next build && pnpm electron:postbuild && pnpm electron:compile && electron-builder --linux"
+    "prepare:tauri": "node scripts/prepare-tauri.mjs",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "pnpm build && pnpm prepare:tauri && tauri build",
+    "tauri:build:windows": "pnpm tauri:build --target x86_64-pc-windows-msvc",
+    "tauri:build:mac": "pnpm tauri:build --target x86_64-apple-darwin && pnpm tauri:build --target aarch64-apple-darwin",
+    "tauri:build:linux": "pnpm tauri:build --target x86_64-unknown-linux-gnu"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -87,15 +86,12 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",
-    "@types/electron": "^1.6.10",
+    "@tauri-apps/cli": "^2.11.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
-    "concurrently": "^9.0.0",
-    "electron": "^36.0.0",
-    "electron-builder": "^25.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
@@ -108,7 +104,6 @@
     "tailwindcss": "^4.2.0",
     "tsx": "^4.21.0",
     "tw-animate-css": "1.3.3",
-    "typescript": "5.7.3",
-    "wait-on": "^8.0.0"
+    "typescript": "5.7.3"
   }
 }

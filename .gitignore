@@ -23,6 +23,11 @@ node_modules/
 .next/
 out/
 dist/
+dist-tauri/
+
+# Tauri
+src-tauri/target/
+src-tauri/Cargo.lock
 
 # OS files
 .DS_Store
@@ -48,6 +53,6 @@ pnpm-debug.log*
 tsconfig.tsbuildinfo
 # next-intl generated type declarations
 messages/*.d.json.ts
-# Electron build output
+# Electron build output (removed)
 dist-electron/
-electron/dist/
+electron/
