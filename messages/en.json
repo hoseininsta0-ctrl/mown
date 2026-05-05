@@ -30,7 +30,7 @@
       "youtube": "YouTube",
       "soundcloud": "SoundCloud",
       "direct": "Direct URL",
-      "snapshot": "Snapshot"
+      "snapshot": "Mirror website"
     },
     "form": {
       "urlLabel": "URL",
@@ -66,7 +66,7 @@
       "label": "Type",
       "video": "Video (mp4)",
       "audio": "Audio (mp3)",
-      "snapshot": "Webpage (mirror)",
+      "snapshot": "Mirror website",
       "direct": "Direct File"
     },
     "quality": {
@@ -112,10 +112,11 @@
     "step1": {
       "title": "Welcome to Mown",
       "description": "Mown helps you download any file from the internet using GitHub Actions. No server or technical tools needed.",
-      "feature1": "Download videos from YouTube and thousands of other sites",
-      "feature2": "Direct download any link",
-      "feature3": "Take snapshots of web pages",
-      "feature4": "All files are stored in your GitHub repository"
+      "feature1": "Download videos from YouTube with quality options",
+      "feature2": "Download music from SoundCloud",
+      "feature3": "Direct download any link",
+      "feature4": "Mirror complete websites for offline use",
+      "feature5": "All files are stored in your GitHub repository"
     },
     "step2": {
       "title": "GitHub Token",

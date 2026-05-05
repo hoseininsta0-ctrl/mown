@@ -12,7 +12,7 @@ export const INPUT_TYPE_LABELS: Record<InputType, string> = {
   youtube: 'YouTube',
   soundcloud: 'SoundCloud',
   direct: 'Direct URL',
-  snapshot: 'Snapshot',
+  snapshot: 'Mirror Website',
 }
 
 export const STATUS_COLORS: Record<string, string> = {

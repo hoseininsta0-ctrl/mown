@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { Navbar } from '@/components/navbar'
 import { Button } from '@/components/ui/button'
@@ -102,8 +102,9 @@ function HistoryCard({
     : `https://raw.githubusercontent.com/${owner}/${repo}/main/${item.downloadUrl}`
   const fileUrl = `/api/jobs/redirect?url=${encodeURIComponent(rawUrl)}&token=${token}`
 
-  const isVideo = item.type === 'youtube' && /\.(mp4|webm|mkv)$/i.test(item.filename)
+   const isVideo = item.type === 'youtube' && /\.(mp4|webm|mkv)$/i.test(item.filename)
   const isAudio = item.type === 'soundcloud' && /\.(mp3|wav|flac|ogg|aac)$/i.test(item.filename)
+  const isMirror = item.type === 'snapshot'
 
   return (
     <Card className="border-border bg-card overflow-hidden transition-all hover:shadow-md">
@@ -135,6 +136,21 @@ function HistoryCard({
                 <TypeIcon className="text-muted-foreground/30 h-12 w-12" />
               )}
               <audio src={fileUrl} controls className="w-full" />
+            </div>
+          ) : isMirror ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4">
+              <Globe className="text-muted-foreground/30 h-12 w-12" />
+              <p className="text-muted-foreground text-center text-xs">
+                سایت میرور شده
+              </p>
+              <a
+                href={`/api/jobs/redirect?url=${encodeURIComponent(`https://raw.githubusercontent.com/${owner}/${repo}/main/${item.downloadUrl}/index.html`)}&token=${token}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary text-xs underline"
+              >
+                مشاهده سایت
+              </a>
             </div>
           ) : thumbnailUrl && !imgError ? (
             <>
@@ -195,16 +211,41 @@ function HistoryCard({
 
           {/* Actions */}
           <div className="mt-4 flex flex-wrap gap-2">
-            <a
-              href={`/api/jobs/redirect?url=${encodeURIComponent(item.downloadUrl)}&token=${token}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button size="sm" className="gap-1.5">
-                <Download className="h-3.5 w-3.5" />
-                دانلود
-              </Button>
-            </a>
+            {isMirror ? (
+              <>
+                <a
+                  href={`/api/jobs/redirect?url=${encodeURIComponent(`https://raw.githubusercontent.com/${owner}/${repo}/main/${item.downloadUrl}/index.html`)}&token=${token}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="sm" className="gap-1.5">
+                    <Globe className="h-3.5 w-3.5" />
+                    مشاهده سایت
+                  </Button>
+                </a>
+                <a
+                  href={`/api/jobs/redirect?url=${encodeURIComponent(`https://raw.githubusercontent.com/${owner}/${repo}/main/${item.downloadUrl}`)}&token=${token}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button size="sm" variant="outline" className="gap-1.5">
+                    <Download className="h-3.5 w-3.5" />
+                    دانلود فایل‌ها
+                  </Button>
+                </a>
+              </>
+            ) : (
+              <a
+                href={`/api/jobs/redirect?url=${encodeURIComponent(item.downloadUrl)}&token=${token}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button size="sm" className="gap-1.5">
+                  <Download className="h-3.5 w-3.5" />
+                  دانلود
+                </Button>
+              </a>
+            )}
             <a href={item.url} target="_blank" rel="noopener noreferrer">
               <Button size="sm" variant="outline" className="gap-1.5">
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -224,8 +265,12 @@ export default function SyncHistoryPage() {
   const [error, setError] = useState('')
   const [settings, setSettings] = useState(getSettings())
   const t = useTranslations('syncHistory')
+  const fetchedRef = useRef(false)
 
   async function fetchHistory() {
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+
     setLoading(true)
     setError('')
     const { token, owner, repo } = getSettings()
@@ -233,6 +278,7 @@ export default function SyncHistoryPage() {
     if (!token || !owner || !repo) {
       setError('تنظیمات ریپازیتوری کامل نیست')
       setLoading(false)
+      fetchedRef.current = false
       return
     }
 
@@ -264,6 +310,7 @@ export default function SyncHistoryPage() {
         newSettings.repo !== settings.repo
       ) {
         setSettings(newSettings)
+        fetchedRef.current = false
         fetchHistory()
       }
     }, 2000)

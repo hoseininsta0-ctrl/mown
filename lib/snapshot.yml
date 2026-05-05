@@ -1,4 +1,4 @@
-name: Webpage Snapshot
+name: Mown Webpage Snapshot
 
 on:
   workflow_dispatch:
@@ -66,14 +66,67 @@ jobs:
           FILE_COUNT=$(find "$FULL_PATH" -type f | wc -l)
           echo "📦 Mirrored $FILE_COUNT files to $FULL_PATH"
 
+      - name: Get file size
+        if: steps.resolve.outputs.skip == 'false'
+        id: size
+        run: |
+          SIZE=$(du -sb "${{ steps.resolve.outputs.full_path }}" | cut -f1)
+          echo "size=$SIZE" >> $GITHUB_OUTPUT
+
+      - name: Update history.json
+        if: steps.resolve.outputs.skip == 'false'
+        run: |
+          # Create history.json if not exists
+          if [ ! -f history.json ]; then
+            echo '[]' > history.json
+          fi
+
+          # Get current time
+          TIMESTAMP=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+          # Create new history entry
+          NEW_ENTRY=$(jq -n \
+            --arg id "${{ steps.resolve.outputs.dir_name }}" \
+            --arg filename "${{ steps.resolve.outputs.dir_name }}" \
+            --arg title "${{ steps.resolve.outputs.domain }}" \
+            --arg url "${{ inputs.url }}" \
+            --arg downloadUrl "${{ steps.resolve.outputs.full_path }}" \
+            --arg thumbnail "" \
+            --arg type "snapshot" \
+            --arg format "html" \
+            --arg size "${{ steps.size.outputs.size }}" \
+            --arg createdAt "$TIMESTAMP" \
+            --arg urlInput "${{ inputs.url }}" \
+            '{
+              id: $id,
+              filename: $filename,
+              title: $title,
+              url: $url,
+              downloadUrl: $downloadUrl,
+              thumbnail: $thumbnail,
+              type: $type,
+              format: $format,
+              duration: "",
+              size: $size,
+              createdAt: $createdAt,
+              urlInput: $urlInput
+            }')
+
+          # Add to history (max 50 items)
+          jq --argjson entry "$NEW_ENTRY" \
+            '[$entry] + . | .[:50]' \
+            history.json > history.json.tmp && mv history.json.tmp history.json
+
+          echo "✅ Added to history.json"
+
       - name: Commit and push
         if: steps.resolve.outputs.skip == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add downloads/snapshot/
-          git commit -m "mown: Snapshot of ${{ steps.resolve.outputs.domain }} (${{ steps.resolve.outputs.dir_name }})" || echo "Nothing to commit"
+          git add downloads/snapshot/ history.json
+          git commit -m "mown: Mirror ${{ steps.resolve.outputs.domain }} (${{ steps.resolve.outputs.dir_name }})" || echo "Nothing to commit"
           git push || echo "Push failed"
 
       - name: Upload artifact

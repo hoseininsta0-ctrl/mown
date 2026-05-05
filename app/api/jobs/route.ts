@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
       if (options?.filename) inputs.filename = options.filename
     } else if (type === 'direct') {
       inputs.filename = options?.filename || 'download'
-    } else if (type === 'snapshot') {
-      inputs.filename = options?.filename || 'snapshot.mhtml'
-    }
+} else if (type === 'snapshot') {
+       // snapshot workflow only accepts url input
+     }
 
     const { runId } = await triggerWorkflow(token, ownerName, repoName, workflowFile, inputs)
 

@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  Camera,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -10,9 +9,11 @@ import {
   EyeOff,
   GitFork,
   Github,
+  Globe,
   KeyRound,
   Link2,
   Loader2,
+  Music,
   Sparkles,
   Youtube,
 } from 'lucide-react'
@@ -55,9 +56,10 @@ function useOnboardingState() {
 function Step1({ t }: { t: ReturnType<typeof useTranslations> }) {
   const features = [
     { icon: Youtube, text: t('step1.feature1'), color: 'text-red-500 bg-red-500/10' },
-    { icon: Link2, text: t('step1.feature2'), color: 'text-blue-400 bg-blue-400/10' },
-    { icon: Camera, text: t('step1.feature3'), color: 'text-green-500 bg-green-500/10' },
-    { icon: Github, text: t('step1.feature4'), color: 'text-foreground bg-secondary' },
+    { icon: Music, text: t('step1.feature2'), color: 'text-orange-500 bg-orange-500/10' },
+    { icon: Link2, text: t('step1.feature3'), color: 'text-blue-400 bg-blue-400/10' },
+    { icon: Globe, text: t('step1.feature4'), color: 'text-green-500 bg-green-500/10' },
+    { icon: Github, text: t('step1.feature5'), color: 'text-foreground bg-secondary' },
   ]
 
   return (

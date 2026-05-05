@@ -1,4 +1,4 @@
-name: Direct Download
+name: Mown Direct Download
 
 on:
   workflow_dispatch:
