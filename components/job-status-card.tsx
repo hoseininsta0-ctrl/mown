@@ -1,6 +1,6 @@
 'use client'
 
-import { Download, ExternalLink, RefreshCw } from 'lucide-react'
+import { Download, ExternalLink, RefreshCw, Clock, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useEffect, useRef, useState } from 'react'
@@ -31,8 +31,6 @@ interface JobStatusCardProps {
 }
 
 const typeIcons = TYPE_ICONS
-
-function formatDate(iso: string) {
 
 type PipelineStatus = 'queued' | 'running' | 'completed' | 'failed'
 

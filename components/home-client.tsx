@@ -13,8 +13,8 @@ import {
   Upload,
   Youtube,
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -72,6 +72,8 @@ export function HomeClient() {
     setInputType(val)
     setDownloadType(defaultDownloadType[val])
     setUrl('')
+    if (val === 'soundcloud') setQuality('best')
+    else if (val === 'youtube') setQuality('1080p')
   }
 
   async function handleCookiesUpload(e: React.ChangeEvent<HTMLInputElement>) {
