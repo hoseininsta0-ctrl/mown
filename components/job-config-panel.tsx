@@ -2,7 +2,6 @@
 
 import { FileAudio, FileVideo, Globe, HardDrive } from 'lucide-react'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -120,42 +119,29 @@ export function JobConfigPanel({
       </div>
 
       {/* Quality selector (YouTube and SoundCloud) */}
-      {(downloadType === 'video' || downloadType === 'audio') && (inputType === 'youtube' || inputType === 'soundcloud') && (
-        <div className="space-y-1.5">
-          <Label htmlFor="quality" className="text-muted-foreground text-sm">
-            {t('quality.label')}
-          </Label>
-          <Select value={quality} onValueChange={onQualityChange}>
-            <SelectTrigger id="quality" className="w-full">
-              <SelectValue placeholder={t('quality.label')} />
-            </SelectTrigger>
-            <SelectContent>
-              {(inputType === 'soundcloud' ? soundcloudQualityOptions : youtubeQualityOptions).map(q => (
-                <SelectItem key={q} value={q}>
-                  {t(`quality.${q}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      {/* Filename override */}
-      <div className="space-y-1.5">
-        <Label htmlFor="filename" className="text-muted-foreground text-sm">
-          {t('filename.label')}{' '}
-          <span className="text-muted-foreground/50 text-[11px] font-normal">(اختیاری)</span>
-        </Label>
-        <Input
-          id="filename"
-          placeholder={t('filename.placeholder')}
-          value={filename}
-          onChange={e => onFilenameChange(e.target.value)}
-          className="font-mono text-sm"
-          spellCheck={false}
-          dir="ltr"
-        />
-      </div>
+      {(downloadType === 'video' || downloadType === 'audio') &&
+        (inputType === 'youtube' || inputType === 'soundcloud') && (
+          <div className="space-y-1.5">
+            <Label htmlFor="quality" className="text-muted-foreground text-sm">
+              {t('quality.label')}
+            </Label>
+            <Select value={quality} onValueChange={onQualityChange}>
+              <SelectTrigger id="quality" className="w-full">
+                <SelectValue placeholder={t('quality.label')} />
+              </SelectTrigger>
+              <SelectContent>
+                {(inputType === 'soundcloud'
+                  ? soundcloudQualityOptions
+                  : youtubeQualityOptions
+                ).map(q => (
+                  <SelectItem key={q} value={q}>
+                    {t(`quality.${q}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
     </div>
   )
 }

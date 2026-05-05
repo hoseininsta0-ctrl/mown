@@ -79,7 +79,17 @@ function formatDate(iso: string): string {
   })
 }
 
-function HistoryCard({ item, token, owner, repo }: { item: HistoryItem; token: string; owner: string; repo: string }) {
+function HistoryCard({
+  item,
+  token,
+  owner,
+  repo,
+}: {
+  item: HistoryItem
+  token: string
+  owner: string
+  repo: string
+}) {
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
   const TypeIcon = typeIcons[item.type] || HardDrive
@@ -95,12 +105,10 @@ function HistoryCard({ item, token, owner, repo }: { item: HistoryItem; token: s
     <Card className="border-border bg-card overflow-hidden transition-all hover:shadow-md">
       <div className="flex flex-col sm:flex-row">
         {/* Thumbnail/Preview */}
-        <div className="relative h-48 w-full shrink-0 sm:h-auto sm:w-48 bg-secondary">
+        <div className="bg-secondary relative h-48 w-full shrink-0 sm:h-auto sm:w-48">
           {thumbnailUrl && !imgError ? (
             <>
-              {!imgLoaded && (
-                <Skeleton className="absolute inset-0 h-full w-full rounded-none" />
-              )}
+              {!imgLoaded && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
               <img
                 src={thumbnailUrl}
                 alt={item.title}
@@ -114,14 +122,14 @@ function HistoryCard({ item, token, owner, repo }: { item: HistoryItem; token: s
             </>
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <TypeIcon className="h-12 w-12 text-muted-foreground/30" />
+              <TypeIcon className="text-muted-foreground/30 h-12 w-12" />
             </div>
           )}
 
           {/* Type badge */}
           <div
             className={cn(
-              'absolute left-2 top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium',
+              'absolute top-2 left-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium',
               typeColor
             )}
           >
@@ -133,15 +141,13 @@ function HistoryCard({ item, token, owner, repo }: { item: HistoryItem; token: s
         {/* Content */}
         <div className="flex flex-1 flex-col justify-between p-4">
           <div>
-            <h3 className="text-foreground line-clamp-1 font-medium">
-              {item.title}
-            </h3>
-            <p className="text-muted-foreground mt-1 line-clamp-1 text-xs font-mono">
+            <h3 className="text-foreground line-clamp-1 font-medium">{item.title}</h3>
+            <p className="text-muted-foreground mt-1 line-clamp-1 font-mono text-xs">
               {item.filename}
             </p>
 
             {/* Metadata */}
-            <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
+            <div className="text-muted-foreground mt-3 flex flex-wrap gap-3 text-[11px]">
               {item.duration && (
                 <span className="flex items-center gap-1">
                   <Play className="h-3 w-3" />
@@ -153,31 +159,29 @@ function HistoryCard({ item, token, owner, repo }: { item: HistoryItem; token: s
                 {formatFileSize(item.size)}
               </span>
               <span>{formatDate(item.createdAt)}</span>
-              {item.quality && (
-                <span className="rounded bg-secondary px-1">{item.quality}</span>
-              )}
+              {item.quality && <span className="bg-secondary rounded px-1">{item.quality}</span>}
             </div>
           </div>
 
-            {/* Actions */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <a
-                href={`/api/jobs/redirect?url=${encodeURIComponent(item.downloadUrl)}&token=${token}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="sm" className="gap-1.5">
-                  <Download className="h-3.5 w-3.5" />
-                  دانلود
-                </Button>
-              </a>
-              <a href={item.url} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" variant="outline" className="gap-1.5">
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  گیت‌هاب
-                </Button>
-              </a>
-            </div>
+          {/* Actions */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              href={`/api/jobs/redirect?url=${encodeURIComponent(item.downloadUrl)}&token=${token}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button size="sm" className="gap-1.5">
+                <Download className="h-3.5 w-3.5" />
+                دانلود
+              </Button>
+            </a>
+            <a href={item.url} target="_blank" rel="noopener noreferrer">
+              <Button size="sm" variant="outline" className="gap-1.5">
+                <ExternalLink className="h-3.5 w-3.5" />
+                گیت‌هاب
+              </Button>
+            </a>
+          </div>
         </div>
       </div>
     </Card>
@@ -244,11 +248,12 @@ export default function SyncHistoryPage() {
         <div className="mb-7 flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-              تاریخچه همگام‌سازی
+              {t('title')}
+              <span className="text-muted-foreground ms-2 text-lg font-normal">
+                {t('downloadedFiles')}
+              </span>
             </h1>
-            <p className="text-muted-foreground mt-1.5 text-sm">
-              فایل‌های دانلود شده از ریپازیتوری GitHub
-            </p>
+            <p className="text-muted-foreground mt-1.5 text-sm">{t('subtitle')}</p>
           </div>
           <div className="flex gap-2">
             <Button
@@ -258,15 +263,13 @@ export default function SyncHistoryPage() {
               onClick={fetchHistory}
               disabled={loading}
             >
-              <RefreshCw
-                className={cn('h-3.5 w-3.5', loading && 'animate-spin')}
-              />
-              بروزرسانی
+              <RefreshCw className={cn('h-3.5 w-3.5', loading && 'animate-spin')} />
+              {t('refresh')}
             </Button>
             <Link href="/">
               <Button size="sm" className="gap-2">
                 <ArrowLeft className="h-3.5 w-3.5 rtl:-rotate-180" />
-                دانلود جدید
+                {t('newDownload')}
               </Button>
             </Link>
           </div>
@@ -276,7 +279,7 @@ export default function SyncHistoryPage() {
         {settings.owner && settings.repo && (
           <div className="mb-6 rounded-lg border border-blue-500/20 bg-blue-500/5 px-4 py-3 text-sm">
             <p className="text-blue-600 dark:text-blue-400">
-              ریپازیتوری:{' '}
+              {t('repository')}{' '}
               <a
                 href={`https://github.com/${settings.owner}/${settings.repo}`}
                 target="_blank"
@@ -285,6 +288,7 @@ export default function SyncHistoryPage() {
               >
                 {settings.owner}/{settings.repo}
               </a>
+              {settings.repo && <span className="ms-2 text-xs">({t('github')})</span>}
             </p>
           </div>
         )}
@@ -309,13 +313,11 @@ export default function SyncHistoryPage() {
           <Card className="border-destructive/50 bg-card">
             <CardContent className="flex flex-col items-center justify-center px-4 py-20 text-center">
               <AlertCircle className="text-destructive mb-4 h-12 w-12" />
-              <p className="text-foreground font-medium">{error}</p>
-              <p className="text-muted-foreground mt-1 text-sm">
-                مطمئن شوید ریپازیتوری تنظیم شده و توکن معتبر است
-              </p>
+              <p className="text-foreground font-medium">{error || t('error')}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{t('settingsIncomplete')}</p>
               <Link href="/" className="mt-4">
                 <Button size="sm" variant="outline" className="gap-2">
-                  تنظیمات ریپازیتوری
+                  {t('settingsIncomplete')}
                 </Button>
               </Link>
             </CardContent>
@@ -326,19 +328,23 @@ export default function SyncHistoryPage() {
               <div className="bg-secondary mb-4 flex h-14 w-14 items-center justify-center rounded-2xl">
                 <Download className="text-muted-foreground h-6 w-6" />
               </div>
-              <p className="text-foreground font-medium">تاریخچه خالی است</p>
-              <p className="text-muted-foreground mt-1 text-sm">
-                فایلی در ریپازیتوری یافت نشد
-              </p>
+              <p className="text-foreground font-medium">{t('empty')}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{t('emptyHint')}</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
             <p className="text-muted-foreground text-sm">
-              {history.length} فایل یافت شد
+              {t('filesFound', { count: history.length })}
             </p>
             {history.map(item => (
-              <HistoryCard key={item.id} item={item} token={settings.token} owner={settings.owner} repo={settings.repo} />
+              <HistoryCard
+                key={item.id}
+                item={item}
+                token={settings.token}
+                owner={settings.owner}
+                repo={settings.repo}
+              />
             ))}
           </div>
         )}

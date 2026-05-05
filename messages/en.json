@@ -187,7 +187,15 @@
     "newDownload": "New Download",
     "settingsIncomplete": "Repository settings incomplete",
     "filesFound": "{count} files found",
-    "sync": "Sync"
+    "sync": "Sync",
+    "initialized": "Initialized",
+    "optional": "Optional",
+    "reload": "Reload",
+    "downloadedFiles": "Downloaded files from GitHub repository",
+    "repository": "Repository:",
+    "download": "Download",
+    "github": "GitHub",
+    "update": "Update"
   },
   "merge": {
     "title": "Merge Parts",
