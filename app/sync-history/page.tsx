@@ -97,12 +97,46 @@ function HistoryCard({
       : `https://raw.githubusercontent.com/${owner}/${repo}/main/${item.thumbnail}`
     : null
 
+  const rawUrl = item.downloadUrl.startsWith('http')
+    ? item.downloadUrl
+    : `https://raw.githubusercontent.com/${owner}/${repo}/main/${item.downloadUrl}`
+  const fileUrl = `/api/jobs/redirect?url=${encodeURIComponent(rawUrl)}&token=${token}`
+
+  const isVideo = item.type === 'youtube' && /\.(mp4|webm|mkv)$/i.test(item.filename)
+  const isAudio = item.type === 'soundcloud' && /\.(mp3|wav|flac|ogg|aac)$/i.test(item.filename)
+
   return (
     <Card className="border-border bg-card overflow-hidden transition-all hover:shadow-md">
       <div className="flex flex-col sm:flex-row">
-        {/* Thumbnail/Preview */}
-        <div className="bg-secondary relative h-48 w-full shrink-0 sm:h-auto sm:w-48">
-          {thumbnailUrl && !imgError ? (
+        {/* Preview */}
+        <div className="bg-secondary relative h-48 w-full shrink-0 sm:h-auto sm:w-80">
+          {isVideo ? (
+            <video
+              src={fileUrl}
+              poster={thumbnailUrl || undefined}
+              controls
+              preload="metadata"
+              className="h-full w-full object-cover"
+            />
+          ) : isAudio ? (
+            <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-4">
+              {thumbnailUrl && !imgError ? (
+                <img
+                  src={thumbnailUrl}
+                  alt={item.title}
+                  className={cn(
+                    'h-24 w-24 rounded-lg object-cover',
+                    imgLoaded ? 'opacity-100' : 'opacity-0'
+                  )}
+                  onLoad={() => setImgLoaded(true)}
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <TypeIcon className="text-muted-foreground/30 h-12 w-12" />
+              )}
+              <audio src={fileUrl} controls className="w-full" />
+            </div>
+          ) : thumbnailUrl && !imgError ? (
             <>
               {!imgLoaded && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
               <img
@@ -212,7 +246,7 @@ export default function SyncHistoryPage() {
         throw new Error(data.error || 'خطا در دریافت تاریخچه')
       }
 
-      setHistory(data.history || [])
+       setHistory((data.history || []).reverse())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'خطا در دریافت تاریخچه')
     } finally {

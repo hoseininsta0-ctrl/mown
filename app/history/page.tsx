@@ -3,7 +3,6 @@
 import {
   ArrowLeft,
   CheckCircle2,
-  Clock,
   Download,
   ExternalLink,
   FileAudio,
@@ -14,11 +13,10 @@ import {
   HardDrive,
   Loader2,
   Plus,
-  RefreshCw,
   XCircle,
 } from 'lucide-react'
-import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 
 import { JobStatusBadge } from '@/components/job-status-badge'
@@ -44,14 +42,6 @@ const statusLeftBorder: Record<string, string> = {
   failed: 'border-s-destructive',
 }
 
-const statusIconMap: Record<string, React.ElementType> = {
-  queued: Clock,
-  in_progress: Loader2,
-  running: Loader2,
-  completed: CheckCircle2,
-  failed: XCircle,
-}
-
 function formatDate(iso: string, locale: string) {
   return new Date(iso).toLocaleString(locale, {
     month: 'short',
@@ -61,15 +51,9 @@ function formatDate(iso: string, locale: string) {
   })
 }
 
-function JobRow({
-  job,
-  onRetry,
-}: {
-  readonly job: StoreJob
-  readonly onRetry: (job: StoreJob) => void
-}) {
+function JobRow({ job }: { readonly job: StoreJob }) {
   const t = useTranslations('history')
-  const tCommon = useTranslations('common')
+
   const locale = useLocale()
 
   const typeKey = job.type === 'youtube' ? 'video' : job.type === 'snapshot' ? 'webpage' : 'raw'
@@ -80,7 +64,6 @@ function JobRow({
       ? 'running'
       : (job.status as 'queued' | 'running' | 'completed' | 'failed')
 
-  const StatusIcon = statusIconMap[displayStatus] ?? Clock
   const folder = getJobFolder(job.type)
   const folderUrl = `https://github.com/${job.owner}/${job.repo}/tree/main/${folder}`
   const commitUrl = job.commitSha
@@ -114,36 +97,10 @@ function JobRow({
           {/* Right: status + actions */}
           <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
             <div className="flex items-center gap-1.5">
-              <StatusIcon
-                className={cn(
-                  'h-3.5 w-3.5',
-                  displayStatus === 'completed' && 'text-success',
-                  displayStatus === 'failed' && 'text-destructive',
-                  displayStatus === 'running' && 'text-primary animate-spin',
-                  displayStatus === 'queued' && 'text-warning'
-                )}
-              />
               <JobStatusBadge status={displayStatus} />
             </div>
 
             <div className="flex items-center gap-1.5">
-              {job.status === 'completed' && (
-                <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
-                  <Download className="h-3 w-3" />
-                  {tCommon('download')}
-                </Button>
-              )}
-              {job.status === 'failed' && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 gap-1.5 text-xs"
-                  onClick={() => onRetry(job)}
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  {t('redownload')}
-                </Button>
-              )}
               <Link href={`/jobs/${job.runId}`}>
                 <Button
                   size="sm"
@@ -241,10 +198,6 @@ export default function HistoryPage() {
     failed: jobs.filter(j => j.status === 'failed').length,
   }
 
-  function handleRetry(job: StoreJob) {
-    window.location.href = `/jobs/${job.runId}`
-  }
-
   return (
     <div className="bg-background min-h-screen">
       <Navbar />
@@ -303,7 +256,7 @@ export default function HistoryPage() {
           ) : (
             <div className="divide-border divide-y">
               {sortedJobs.map(job => (
-                <JobRow key={job.runId} job={job} onRetry={handleRetry} />
+                <JobRow key={job.runId} job={job} />
               ))}
             </div>
           )}
