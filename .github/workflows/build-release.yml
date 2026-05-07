@@ -1,45 +1,44 @@
-name: Build & Release Desktop Apps
+name: Build & Release
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
   workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
   build-macos:
+    name: Build — macOS (${{ matrix.arch }})
     runs-on: macos-latest
     strategy:
+      fail-fast: false
       matrix:
         arch: [x86_64-apple-darwin, aarch64-apple-darwin]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          version: 10
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
         with:
-          version: latest
+          node-version: '22'
+          cache: pnpm
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.arch }}
 
-      - name: Install Tauri CLI
-        run: pnpm add -D @tauri-apps/cli@latest
-
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
         run: pnpm tauri:build --target ${{ matrix.arch }}
@@ -49,107 +48,116 @@ jobs:
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-${{ matrix.arch }}
           path: src-tauri/target/${{ matrix.arch }}/release/bundle/
+          if-no-files-found: error
 
   build-windows:
+    name: Build — Windows x64
     runs-on: windows-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          version: 10
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
         with:
-          version: latest
+          node-version: '22'
+          cache: pnpm
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Install Tauri CLI
-        run: pnpm add -D @tauri-apps/cli@latest
-
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
         run: pnpm tauri:build --target x86_64-pc-windows-msvc
 
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: windows-x64
           path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/
+          if-no-files-found: error
 
   build-linux:
+    name: Build — Linux x64
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          version: 10
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
         with:
-          version: latest
+          node-version: '22'
+          cache: pnpm
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu
 
-      - name: Install Linux dependencies
+      - name: Install Linux system deps
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
-
-      - name: Install Tauri CLI
-        run: pnpm add -D @tauri-apps/cli@latest
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev \
+            patchelf libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
         run: pnpm tauri:build --target x86_64-unknown-linux-gnu
 
-      - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-x64
           path: src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/
+          if-no-files-found: error
 
   release:
+    name: Create GitHub Release
     needs: [build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: artifacts/
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*
+          name: 'Mown ${{ github.ref_name }}'
+          body: |
+            ## Mown ${{ github.ref_name }}
+
+            ### دانلود / Download
+
+            | Platform | Architecture | File |
+            |----------|-------------|------|
+            | macOS | Apple Silicon (M1/M2/M3) | `.dmg` (arm64) |
+            | macOS | Intel | `.dmg` (x86_64) |
+            | Windows | x64 | `.exe` (installer) |
+            | Linux | x64 | `.AppImage` or `.deb` |
+
+            ### نصب / Installation
+            - **macOS**: فایل `.dmg` را باز کرده و Mown را به Applications بکشید
+            - **Windows**: فایل `.exe` را اجرا کنید
+            - **Linux AppImage**: `chmod +x Mown-*.AppImage && ./Mown-*.AppImage`
+            - **Linux deb**: `sudo dpkg -i mown_*.deb`
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: artifacts/**/*
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

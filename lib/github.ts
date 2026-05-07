@@ -3,10 +3,10 @@ import AdmZip from 'adm-zip'
 import sodium from 'libsodium-wrappers'
 
 import {
-  DIRECT_WORKFLOW,
-  SNAPSHOT_WORKFLOW,
-  SOUNDCLOUD_WORKFLOW,
-  YOUTUBE_WORKFLOW,
+  getDirectWorkflow,
+  getSnapshotWorkflow,
+  getSoundcloudWorkflow,
+  getYoutubeWorkflow,
 } from './workflows'
 
 export type JobType = 'youtube' | 'direct' | 'snapshot' | 'soundcloud'
@@ -17,11 +17,13 @@ export type RunStatus = {
   runId: number
 }
 
-const WORKFLOWS: Record<JobType, { filename: string; content: string }> = {
-  youtube: { filename: 'youtube-download.yml', content: YOUTUBE_WORKFLOW },
-  direct: { filename: 'direct-download.yml', content: DIRECT_WORKFLOW },
-  snapshot: { filename: 'snapshot.yml', content: SNAPSHOT_WORKFLOW },
-  soundcloud: { filename: 'soundcloud-download.yml', content: SOUNDCLOUD_WORKFLOW },
+function getWorkflows(): Record<JobType, { filename: string; content: string }> {
+  return {
+    youtube: { filename: 'youtube-download.yml', content: getYoutubeWorkflow() },
+    direct: { filename: 'direct-download.yml', content: getDirectWorkflow() },
+    snapshot: { filename: 'snapshot.yml', content: getSnapshotWorkflow() },
+    soundcloud: { filename: 'soundcloud-download.yml', content: getSoundcloudWorkflow() },
+  }
 }
 
 function getOctokit(token: string) {
@@ -47,7 +49,8 @@ export async function setupRepo(token: string, owner: string, repoName: string =
     })
   }
 
-  for (const { filename, content } of Object.values(WORKFLOWS)) {
+  const workflows = getWorkflows()
+  for (const { filename, content } of Object.values(workflows)) {
     const path = `.github/workflows/${filename}`
     const encoded = Buffer.from(content).toString('base64')
     let sha: string | undefined
