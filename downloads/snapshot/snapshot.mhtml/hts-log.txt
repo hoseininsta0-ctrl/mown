@@ -1,14 +1,14 @@
-HTTrack3.49-5 launched on Thu, 07 May 2026 14:26:35 at https://purenudism.com
-(httrack https://purenudism.com -r3 -%v -O downloads/snapshot/snapshot.mhtml -s0 -K -A0 -C -%! )
+HTTrack3.49-5 launched on Thu, 07 May 2026 16:47:34 at https://xbeauty.world/
+(httrack https://xbeauty.world/ -r3 -%v -O downloads/snapshot/snapshot.mhtml -s0 -K -A0 -C -%! )
 
 Information, Warnings and Errors reported for this mirror:
 note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,
 	such as username/password authentication for websites mirrored in this project
 	do not share these files/folders if you want these information to remain private
 
-14:26:35	Warning: 	* security warning: !!! BYPASSING SECURITY LIMITS - MONITOR THIS SESSION WITH EXTREME CARE !!!
-14:26:35	Warning: 	Cache: error trying to read the cache: bad zip file
-14:26:35	Warning: 	Retry after error -5 (Unable to get server's address: Name or service not known) at link https://purenudism.com/ (from primary/primary)
-14:26:35	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link https://purenudism.com/ (from primary/primary)
-14:26:35	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link https://purenudism.com/ (from primary/primary)
-14:26:35	Warning: 	No data seems to have been transferred during this session! : restoring previous one!
+16:47:34	Warning: 	* security warning: !!! BYPASSING SECURITY LIMITS - MONITOR THIS SESSION WITH EXTREME CARE !!!
+16:47:34	Warning: 	Cache: error trying to read the cache: bad zip file
+16:47:54	Warning: 	Retry after error -5 (Unable to get server's address: Temporary failure in name resolution) at link https://xbeauty.world/ (from primary/primary)
+16:48:00	Warning: 	Retry after error -5 (Unable to get server's address: unknown error) at link https://xbeauty.world/ (from primary/primary)
+16:48:10	Error: 	"Unable to get server's address: unknown error" (-5) after 2 retries at link https://xbeauty.world/ (from primary/primary)
+16:48:10	Warning: 	No data seems to have been transferred during this session! : restoring previous one!
