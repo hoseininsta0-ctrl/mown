@@ -1,11 +1,12 @@
 import { Octokit } from '@octokit/rest'
-import sodium from 'libsodium-wrappers'
 import AdmZip from 'adm-zip'
+import sodium from 'libsodium-wrappers'
+
 import {
-  YOUTUBE_WORKFLOW,
-  DIRECT_WORKFLOW,
-  SNAPSHOT_WORKFLOW,
-  SOUNDCLOUD_WORKFLOW,
+  getDirectWorkflow,
+  getSnapshotWorkflow,
+  getSoundcloudWorkflow,
+  getYoutubeWorkflow,
 } from './workflows'
 
 export type JobType = 'youtube' | 'direct' | 'snapshot' | 'soundcloud'
@@ -16,11 +17,13 @@ export type RunStatus = {
   runId: number
 }
 
-const WORKFLOWS: Record<JobType, { filename: string; content: string }> = {
-  youtube: { filename: 'youtube-download.yml', content: YOUTUBE_WORKFLOW },
-  direct: { filename: 'direct-download.yml', content: DIRECT_WORKFLOW },
-  snapshot: { filename: 'snapshot.yml', content: SNAPSHOT_WORKFLOW },
-  soundcloud: { filename: 'soundcloud-download.yml', content: SOUNDCLOUD_WORKFLOW },
+function getWorkflows(): Record<JobType, { filename: string; content: string }> {
+  return {
+    youtube: { filename: 'youtube-download.yml', content: getYoutubeWorkflow() },
+    direct: { filename: 'direct-download.yml', content: getDirectWorkflow() },
+    snapshot: { filename: 'snapshot.yml', content: getSnapshotWorkflow() },
+    soundcloud: { filename: 'soundcloud-download.yml', content: getSoundcloudWorkflow() },
+  }
 }
 
 function getOctokit(token: string) {
@@ -46,7 +49,8 @@ export async function setupRepo(token: string, owner: string, repoName: string =
     })
   }
 
-  for (const { filename, content } of Object.values(WORKFLOWS)) {
+  const workflows = getWorkflows()
+  for (const { filename, content } of Object.values(workflows)) {
     const path = `.github/workflows/${filename}`
     const encoded = Buffer.from(content).toString('base64')
     let sha: string | undefined
@@ -252,5 +256,81 @@ export async function downloadArtifact(token: string, owner: string, repo: strin
     buffer: Buffer.from(zip.toBuffer()),
     filename: 'parts.zip',
     isMultipart: true,
+  }
+}
+
+export interface HistoryEntry {
+  id: string
+  filename: string
+  title: string
+  url?: string
+  githubUrl: string
+  downloadUrl: string
+  thumbnail: string
+  type: 'youtube' | 'soundcloud' | 'direct' | 'snapshot'
+  quality: string
+  format: string
+  duration: string
+  uploader?: string
+  track?: string
+  album?: string
+  size: number | string
+  createdAt: string
+  isSplit: boolean
+  parts: Array<{
+    filename: string
+    size: number | string
+    downloadUrl: string
+  }>
+  fileCount?: number
+}
+
+export async function fetchHistory(
+  token: string,
+  owner: string,
+  repo: string
+): Promise<HistoryEntry[]> {
+  const octokit = getOctokit(token)
+
+  try {
+    const { data } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path: 'history.json',
+    })
+
+    if ('content' in data && data.content) {
+      const content = Buffer.from(data.content, 'base64').toString('utf8')
+      return JSON.parse(content)
+    }
+
+    return []
+  } catch {
+    return []
+  }
+}
+
+export async function fetchFileContent(
+  token: string,
+  owner: string,
+  repo: string,
+  path: string
+): Promise<string | null> {
+  const octokit = getOctokit(token)
+
+  try {
+    const { data } = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path,
+    })
+
+    if ('content' in data && data.content) {
+      return Buffer.from(data.content, 'base64').toString('utf8')
+    }
+
+    return null
+  } catch {
+    return null
   }
 }
